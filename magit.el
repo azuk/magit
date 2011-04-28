@@ -357,6 +357,11 @@ If t, use ptys: this enables magit to prompt for passphrases when needed."
   :type '(choice (const :tag "pipe" nil)
                  (const :tag "pty" t)))
 
+(defcustom magit-expand-symlinks-for-top-dir t
+  "Expand starting point symlinks when finding repository top directory."
+  :group 'magit
+  :type 'boolean)
+
 (defcustom magit-completing-read-function 'magit-builtin-completing-read
   "Function to be called when requesting input from the user."
   :group 'magit
@@ -1109,7 +1114,10 @@ Read `completing-read' documentation for the meaning of the argument"
                   dirs))))
 
 (defun magit-get-top-dir (cwd)
-  (let ((cwd (expand-file-name (file-truename cwd))))
+  (let ((cwd (expand-file-name
+              (if magit-expand-symlinks-for-top-dir
+                  (file-truename cwd)
+                cwd))))
     (when (file-directory-p cwd)
       (let* ((default-directory (file-name-as-directory cwd))
              (cdup (magit-git-string "rev-parse" "--show-cdup")))
