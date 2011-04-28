@@ -7378,6 +7378,14 @@ init file:
 
 (cl-eval-when (load eval) (magit-version t))
 
+(defun magit-run-git-gui-blame ()
+  "Run `git gui blame' for the current file/line."
+  (interactive)
+  (start-process (format "git gui blame <%s>"
+                         (file-name-nondirectory (buffer-file-name)))
+                 nil "git" "gui" "blame" (format "--line=%d" (line-number-at-pos))
+                 (file-relative-name (buffer-file-name))))
+
 (provide 'magit)
 
 ;; rest of magit core
