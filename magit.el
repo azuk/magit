@@ -7797,6 +7797,14 @@ init file:
 (define-obsolete-variable-alias 'magit-quote-curly-braces
   'magit-process-quote-curly-braces "2.0.0")
 
+(defun magit-run-git-gui-blame ()
+  "Run `git gui blame' for the current file/line."
+  (interactive)
+  (start-process (format "git gui blame <%s>"
+                         (file-name-nondirectory (buffer-file-name)))
+                 nil "git" "gui" "blame" (format "--line=%d" (line-number-at-pos))
+                 (file-relative-name (buffer-file-name))))
+
 (provide 'magit)
 
 ;; rest of magit core
