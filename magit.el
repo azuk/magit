@@ -409,6 +409,11 @@ case the selected window is used."
   :set-after '(server-window)
   :type magit-server-window-type)
 
+(defcustom magit-expand-symlinks-for-top-dir t
+  "Expand starting point symlinks when finding repository top directory."
+  :group 'magit
+  :type 'boolean)
+
 ;;;;; Staging
 
 (defcustom magit-stage-all-confirm t
@@ -2067,6 +2072,9 @@ an existing directory."
                       (file-name-as-directory
                        (expand-file-name directory))
                     default-directory))
+  (setq directory (if magit-expand-symlinks-for-top-dir
+                      (file-truename directory)
+                    directory))
   (unless (file-directory-p directory)
     (error "%s isn't an existing directory" directory))
   (let* ((default-directory directory)
