@@ -5972,6 +5972,14 @@ layer. This can be added to `magit-mode-hook' for example"
                  (not (eq sym 'magit-wip-save-mode)))
         (funcall sym 1)))))
 
+(defun magit-run-git-gui-blame ()
+  "Run `git gui blame' for the current file/line."
+  (interactive)
+  (start-process (format "git gui blame <%s>"
+                         (file-name-nondirectory (buffer-file-name)))
+                 nil "git" "gui" "blame" (format "--line=%d" (line-number-at-pos))
+                 (file-relative-name (buffer-file-name))))
+
 (provide 'magit)
 
 ;; rest of magit core
