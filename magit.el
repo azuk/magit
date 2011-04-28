@@ -6331,6 +6331,14 @@ This can be added to `magit-mode-hook' for example"
       (grep-mode)
       (pop-to-buffer (current-buffer)))))
 
+(defun magit-run-git-gui-blame ()
+  "Run `git gui blame' for the current file/line."
+  (interactive)
+  (start-process (format "git gui blame <%s>"
+                         (file-name-nondirectory (buffer-file-name)))
+                 nil "git" "gui" "blame" (format "--line=%d" (line-number-at-pos))
+                 (file-relative-name (buffer-file-name))))
+
 (provide 'magit)
 
 ;; rest of magit core
