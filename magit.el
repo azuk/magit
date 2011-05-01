@@ -4106,7 +4106,7 @@ toggled on.  When it's toggled on for the first time, return
 		      (append magit-git-standard-options
                               '("commit")
                               magit-custom-options
-                              '("-F" "-")
+                              '("-F" "-" "--cleanup=strip")
 			      (if (and commit-all (not allow-empty)) '("--all") '())
 			      (if amend '("--amend") '())
 			      (if allow-empty '("--allow-empty"))
