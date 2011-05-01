@@ -4364,26 +4364,29 @@ With prefix argument, changes in staging area are kept.
           (error "No commit at point")))))
 
 (defun magit-apply-commit (commit &optional docommit noerase revert)
-  (let* ((parent-id (magit-choose-parent-id commit "cherry-pick"))
-	 (success (magit-run* `(,magit-git-executable
-				,@magit-git-standard-options
-				,(if revert "revert" "cherry-pick")
-				,@(if parent-id
-				      (list "-m" (number-to-string parent-id)))
-				,@(if (not docommit) (list "--no-commit"))
-				,commit)
-			      nil noerase)))
-    (when (and (not docommit) success)
-      (cond (revert
-	     (magit-log-edit-append
-	      (magit-format-commit commit "Reverting \"%s\"")))
-	    (t
-	     (magit-log-edit-append
-	      (magit-format-commit commit "%s%n%n%b"))
-	     (magit-log-edit-set-field
-	      'author
-	      (magit-format-commit commit "%an <%ae>, %ai")))))
-    success))
+  (with-temp-buffer
+    (when (file-readable-p ".git/MERGE_MSG")
+      (insert-file-contents ".git/MERGE_MSG"))
+    (let* ((parent-id (magit-choose-parent-id commit "cherry-pick"))
+           (success (magit-run* `(,magit-git-executable
+                                  ,@magit-git-standard-options
+                                  ,(if revert "revert" "cherry-pick")
+                                  ,@(if parent-id
+                                        (list "-m" (number-to-string parent-id)))
+                                  ,@(if (not docommit) (list "--no-commit"))
+                                  ,commit)
+                                nil noerase)))
+      (when (and (not docommit) success)
+        (when (buffer-modified-p)
+          (goto-char (point-max))
+          (insert "\n# Comment of another commit:\n\n")
+          (insert-file-contents ".git/MERGE_MSG")
+          (write-region 1 (point-max) ".git/MERGE_MSG"))
+        (unless revert
+          (magit-log-edit-set-field
+           'author
+           (magit-format-commit commit "%an <%ae>, %ai"))))
+      success)))
 
 (defun magit-apply-item ()
   (interactive)
