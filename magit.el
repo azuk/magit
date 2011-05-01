@@ -4833,7 +4833,7 @@ environment (potentially empty)."
                         (append magit-git-standard-options
                                 '("commit")
                                 magit-custom-options
-                                '("-F" "-")
+                                '("-F" "-" "--cleanup=strip")
                                 (when (and commit-all (not allow-empty))
                                   '("--all"))
                                 (when amend '("--amend"))
