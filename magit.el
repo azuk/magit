@@ -632,6 +632,7 @@ operation after commit).")
     (define-key map (kbd "+") 'magit-diff-larger-hunks)
     (define-key map (kbd "0") 'magit-diff-default-hunks)
     (define-key map (kbd "h") 'magit-toggle-diff-refine-hunk)
+    (define-key map (kbd "'") 'magit-fixup-staged-to-commit)
     map))
 
 (defvar magit-commit-mode-map
@@ -5301,6 +5302,18 @@ for the file whose log must be displayed."
       ((diff) (magit-show-file-from-diff item)))))
 
 ;;; Miscellaneous
+
+(defun magit-fixup-staged-to-commit ()
+  (interactive)
+  (when (and (not (string= "1" (magit-get "rebase.autosquash")))
+             (y-or-n-p "rebase.autosquash is not set. Do you want it to be set now? "))
+    (magit-set "rebase.autosquash" "1"))
+  (let ((commit-subject (magit-trim-line (magit-format-commit (magit-commit-at-point) "%s"))))
+    (apply #'magit-run-git-async "commit" "-m"
+           (if (string-match "^fixup! " commit-subject)
+               commit-subject
+             (concat "fixup! " commit-subject))
+           (if (magit-anything-staged-p) '() '("--all")))))
 
 (defun magit-edit-ignore-string (file)
   "Prompt the user for the string to be ignored.
