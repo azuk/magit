@@ -749,6 +749,7 @@ This is calculated from `magit-highlight-indentation'.")
     (define-key map (kbd "+") 'magit-diff-larger-hunks)
     (define-key map (kbd "0") 'magit-diff-default-hunks)
     (define-key map (kbd "h") 'magit-toggle-diff-refine-hunk)
+    (define-key map (kbd "'") 'magit-commit-for-autosquash)
     map))
 
 (defvar magit-commit-mode-map
@@ -5555,6 +5556,29 @@ for the file whose log must be displayed."
       ((diff) (magit-show-file-from-diff item)))))
 
 ;;; Miscellaneous
+
+(magit-define-command commit-for-autosquash ()
+  "Make a fixup! commit to be autosquashed to the commit at point.
+If there are staged changes, those are committed.  If there are
+no staged changes, `magit-commit-all-when-nothing-staged'
+determines what is done.  See git-rebase(1) for a description of
+the autosquash feature."
+  (interactive)
+  (when (and (not (magit-get-boolean "rebase.autosquash"))
+             (y-or-n-p "rebase.autosquash is not set. Do you want it to be set now? "))
+    (magit-set "1" "rebase.autosquash"))
+  (let* ((commit-subject (magit-trim-line (magit-format-commit (magit-commit-at-point) "%s")))
+         (new-subject (concat "fixup! "
+                              (if (string-match "^\\(squash\\|fixup\\)! " commit-subject)
+                                  (substring commit-subject (match-end 0))
+                                commit-subject))))
+    (apply #'magit-run-git-async "commit" "-m" new-subject
+           (cond ((magit-anything-staged-p) '())
+                 ((or (eq magit-commit-all-when-nothing-staged t)
+                      (and magit-commit-all-when-nothing-staged
+                           (y-or-n-p "Nothing staged.  Commit all unstaged changes? ")))
+                  '("--all"))
+                 (t (error "Nothing to commit."))))))
 
 (defun magit-edit-ignore-string (file)
   "Prompt the user for the string to be ignored.
