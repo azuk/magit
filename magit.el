@@ -1363,6 +1363,7 @@ Many Magit faces inherit from this one by default."
     (define-key map (kbd "X") 'magit-reset-working-tree)
     (define-key map (kbd "C-c C-c") 'magit-key-mode-popup-dispatch)
     (define-key map (kbd "C-c C-e") 'magit-key-mode-popup-dispatch)
+    (define-key map (kbd "'") 'magit-key-mode-popup-autosquash)
     map)
   "Parent keymap for all keymaps of modes derived from `magit-mode'.")
 
@@ -6555,6 +6556,43 @@ More information can be found in Info node `(magit)Wazzup'
 
 ;;; Acting (2)
 ;;;; Ignore
+
+(defun magit-commit-for-autosquash (prefix)
+  "Does the work of magit-fixup-for-autosquash and magit-squash-for-autosquash.
+`prefix' is either \"fixup!\" or \"squash!\""
+  (when (and (not (magit-get-boolean "rebase.autosquash"))
+             (y-or-n-p "rebase.autosquash is not set. Do you want it to be set now? "))
+    (magit-set "1" "rebase.autosquash"))
+  (let* ((commit-subject (magit-format-commit (magit-guess-branch) "%s"))
+         (new-subject (concat prefix " "
+                              (if (string-match "^\\(squash\\|fixup\\)! " commit-subject)
+                                  (substring commit-subject (match-end 0))
+                                commit-subject))))
+    (apply #'magit-run-git-async "commit" "-m" new-subject
+           (cond ((magit-anything-staged-p) '())
+                 ((or (eq magit-commit-all-when-nothing-staged t)
+                      (and magit-commit-all-when-nothing-staged
+                           (y-or-n-p "Nothing staged.  Commit all unstaged changes? ")))
+                  '("--all"))
+                 (t (error "Nothing to commit."))))))
+
+(defun magit-fixup-for-autosquash ()
+  "Make a fixup! commit to be autosquashed to the commit at point.
+If there are staged changes, those are committed.  If there are
+no staged changes, `magit-commit-all-when-nothing-staged'
+determines what is done.  See git-rebase(1) for a description of
+the autosquash feature."
+  (interactive)
+  (magit-commit-for-autosquash "fixup!"))
+
+(defun magit-squash-for-autosquash ()
+  "Make a squash! commit to be autosquashed to the commit at point.
+If there are staged changes, those are committed.  If there are
+no staged changes, `magit-commit-all-when-nothing-staged'
+determines what is done.  See git-rebase(1) for a description of
+the autosquash feature."
+  (interactive)
+  (magit-commit-for-autosquash "squash!"))
 
 (defun magit-edit-ignore-string (file)
   "Prompt the user for the string to be ignored.
