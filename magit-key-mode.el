@@ -304,7 +304,13 @@
       ("-b" "Ignore whitespace changes" "--ignore-space-change")
       ("-w" "Ignore all whitespace" "--ignore-all-space")
       ("-W" "Show surrounding functions" "--function-context"))
-     ))
+     )
+
+    (autosquash
+     (man-page "git-rebase")
+     (actions
+      ("'" "Fixup!" magit-fixup-for-autosquash)
+      ("s" "Squash!" magit-squash-for-autosquash))))
   "Holds the key, help, function mapping for the log-mode.
 If you modify this make sure you reset `magit-key-mode-keymaps'
 to nil.")
