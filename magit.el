@@ -3307,10 +3307,12 @@ Evaluate (man \"git-check-ref-format\") for details")
    "\\)?"
    "\\)?"
    " ?"
+   "\\(?:"
    "\\([BG]\\)?"                                    ; gpg     (4)
-   "\\(\\[.*?\\]\\)?"                               ; author  (5)
-   "\\(\\[.*?\\]\\)?"                               ; date    (6)
-   "\\(.*\\)$"                                      ; msg     (7)
+   "\\(\\[.*?\\]\\)"                                ; author  (5)
+   "\\(\\[.*?\\]\\)"                                ; date    (6)
+   "\\)?"
+   "\\(.+\\)?$"                                     ; msg     (7)
    ))
 
 (defconst magit-log-longline-re
